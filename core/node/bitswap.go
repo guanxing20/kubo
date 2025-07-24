@@ -99,6 +99,11 @@ func Bitswap(serverEnabled, libp2pEnabled, httpEnabled bool) interface{} {
 			if err != nil {
 				return nil, err
 			}
+			logger.Infof("HTTP Retrieval enabled: Allowlist: %t. Denylist: %t",
+				httpCfg.Allowlist != nil,
+				httpCfg.Denylist != nil,
+			)
+
 			bitswapHTTP := httpnet.New(in.Host,
 				httpnet.WithHTTPWorkers(int(httpCfg.NumWorkers.WithDefault(config.DefaultHTTPRetrievalNumWorkers))),
 				httpnet.WithAllowlist(httpCfg.Allowlist),
@@ -106,6 +111,7 @@ func Bitswap(serverEnabled, libp2pEnabled, httpEnabled bool) interface{} {
 				httpnet.WithInsecureSkipVerify(httpCfg.TLSInsecureSkipVerify.WithDefault(config.DefaultHTTPRetrievalTLSInsecureSkipVerify)),
 				httpnet.WithMaxBlockSize(int64(maxBlockSize)),
 				httpnet.WithUserAgent(version.GetUserAgentVersion()),
+				httpnet.WithMetricsLabelsForEndpoints(httpCfg.Allowlist),
 			)
 			bitswapNetworks = network.New(in.Host.Peerstore(), bitswapLibp2p, bitswapHTTP)
 		} else if libp2pEnabled {
